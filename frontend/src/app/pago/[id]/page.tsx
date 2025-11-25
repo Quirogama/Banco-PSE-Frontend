@@ -50,8 +50,26 @@ export default function PagoPage({ params }: PagoPageProps) {
       const pagoData = await pagoService.obtenerPago(pagoId);
       setPago(pagoData);
 
-      if (pagoData.estado !== 'pendiente') {
-        setError('Este pago ya ha sido procesado');
+      // Reset form/session state when loading a new payment
+      setSesionIniciada(false);
+      setJwt(null);
+      setEmail('');
+      setContrasena('');
+      setProcesamientoExitoso(false);
+      console.log('Pago cargado:', pagoData);
+      console.log('Estado interno tras carga:', { sesionIniciada: false, jwt: null });
+
+        // Ajustar mensaje según el estado del pago.
+        // Permitir reintentos si el pago falló (estado = 'fallido').
+        if (pagoData.estado === 'exitoso') {
+          setError('Este pago ya ha sido procesado (exitoso)');
+        } else if (pagoData.estado === 'cancelado') {
+          setError('Este pago fue cancelado');
+        } else if (pagoData.estado === 'fallido') {
+          // Mostrar aviso pero permitir que el usuario vuelva a intentar el pago
+          setError('El pago falló anteriormente. Puedes intentar nuevamente iniciando sesión.');
+        } else {
+          setError('');
       }
     } catch (err: any) {
       setError(err.message || 'Error al cargar el pago');
@@ -202,6 +220,14 @@ export default function PagoPage({ params }: PagoPageProps) {
             </div>
 
             <div className="card-body">
+              {process.env.NODE_ENV === 'development' && (
+                <div style={{ background: '#f8f9fa', padding: '0.75rem', marginBottom: '1rem', borderRadius: 6 }}>
+                  <strong>DEBUG:</strong>
+                  <pre style={{ whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>
+                    {JSON.stringify({ pago, sesionIniciada, jwt, loading, error }, null, 2)}
+                  </pre>
+                </div>
+              )}
               {error && !pago && (
                 <Alert type="danger">{error}</Alert>
               )}
@@ -224,9 +250,11 @@ export default function PagoPage({ params }: PagoPageProps) {
                   <hr />
 
                   {/* Formulario de inicio de sesión */}
-                  {pago.estado === 'pendiente' && !sesionIniciada && (
+                  {pago && !sesionIniciada && (
                     <>
                       <h5 className="mb-3">Iniciar Sesión</h5>
+
+                      <p className="text-muted small">Ingrese sus credenciales para procesar el pago. Si ya inició sesión, verá la opción de confirmar abajo.</p>
 
                       <form onSubmit={iniciarSesion}>
                         <Input
@@ -267,7 +295,7 @@ export default function PagoPage({ params }: PagoPageProps) {
                   )}
 
                   {/* Confirmación de pago después de iniciar sesión */}
-                  {pago.estado === 'pendiente' && sesionIniciada && (
+                  {pago && sesionIniciada && (
                     <>
                       <h4 className="mb-4">Realizar Pago</h4>
 
