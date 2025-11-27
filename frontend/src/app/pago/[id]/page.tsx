@@ -153,7 +153,8 @@ export default function PagoPage({ params }: PagoPageProps) {
       // Procesar el pago usando el JWT
       const resultado = await pagoService.procesarPago({
         pagoId: pago.id,
-        email,
+        tipoDocumento,
+        identificacion,
         contrasena,
       }, jwt);
 

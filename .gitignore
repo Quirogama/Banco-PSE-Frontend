@@ -1,0 +1,8 @@
+# Ignorar dependencias y archivos generados
+node_modules/
+dist/
+build/
+.env
+.next/
+.DS_Store
+*.log
