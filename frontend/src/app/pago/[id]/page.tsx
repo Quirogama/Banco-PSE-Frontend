@@ -27,9 +27,11 @@ export default function PagoPage({ params }: PagoPageProps) {
   const [usuario, setUsuario] = useState<{ nombre: string; apellido: string } | null>(null);
 
   // Datos del formulario
-  const [email, setEmail] = useState('');
+  const [tipoDocumento, setTipoDocumento] = useState('CC');
+  const [identificacion, setIdentificacion] = useState('');
   const [contrasena, setContrasena] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const [tipoDocumentoError, setTipoDocumentoError] = useState('');
+  const [identificacionError, setIdentificacionError] = useState('');
   const [contrasenaError, setContrasenaError] = useState('');
 
   useEffect(() => {
@@ -64,15 +66,20 @@ export default function PagoPage({ params }: PagoPageProps) {
   const validarFormulario = (): boolean => {
     let valido = true;
     
-    // Validar email
-    if (!email) {
-      setEmailError('El correo electrónico es requerido');
-      valido = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Por favor ingrese un correo válido');
+    // Validar tipoDocumento
+    if (!tipoDocumento) {
+      setTipoDocumentoError('El tipo de documento es requerido');
       valido = false;
     } else {
-      setEmailError('');
+      setTipoDocumentoError('');
+    }
+
+    // Validar identificacion
+    if (!identificacion) {
+      setIdentificacionError('La identificación es requerida');
+      valido = false;
+    } else {
+      setIdentificacionError('');
     }
 
     // Validar contraseña
@@ -102,7 +109,8 @@ export default function PagoPage({ params }: PagoPageProps) {
 
       // Validar credenciales con el backend usando login
       const resultado = await pagoService.login({
-        email,
+        tipoDocumento,
+        identificacion,
         contrasena,
       });
 
@@ -229,13 +237,29 @@ export default function PagoPage({ params }: PagoPageProps) {
                       <h5 className="mb-3">Iniciar Sesión</h5>
 
                       <form onSubmit={iniciarSesion}>
+                        <div className="mb-3">
+                          <label className="form-label fw-bold">Tipo de Documento</label>
+                          <select
+                            className="form-select"
+                            value={tipoDocumento}
+                            onChange={(e) => setTipoDocumento(e.target.value)}
+                            disabled={procesando}
+                            required
+                          >
+                            <option value="CC">Cédula de Ciudadanía (CC)</option>
+                            <option value="TI">Tarjeta de Identidad (TI)</option>
+                            <option value="PASS">Pasaporte (PASS)</option>
+                          </select>
+                          {tipoDocumentoError && <div className="text-danger small">{tipoDocumentoError}</div>}
+                        </div>
+
                         <Input
-                          label="Correo Electrónico"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="usuario@ejemplo.com"
-                          error={emailError}
+                          label="Identificación"
+                          type="text"
+                          value={identificacion}
+                          onChange={(e) => setIdentificacion(e.target.value)}
+                          placeholder="Número de documento"
+                          error={identificacionError}
                           disabled={procesando}
                           required
                         />
@@ -272,7 +296,7 @@ export default function PagoPage({ params }: PagoPageProps) {
                       <h4 className="mb-4">Realizar Pago</h4>
 
                       <div className="mb-4 p-3 bg-light rounded">
-                        <p className="mb-2"><strong>Usuario:</strong> {usuario ? `${usuario.nombre} ${usuario.apellido}` : email}</p>
+                        <p className="mb-2"><strong>Usuario:</strong> {usuario ? `${usuario.nombre} ${usuario.apellido}` : identificacion}</p>
                         <p className="mb-0"><strong>Monto:</strong> {formatearMonto(pago.monto)}</p>
                       </div>
 
@@ -296,7 +320,8 @@ export default function PagoPage({ params }: PagoPageProps) {
                         onClick={() => {
                           setSesionIniciada(false);
                           setJwt(null);
-                          setEmail('');
+                          setTipoDocumento('CC');
+                          setIdentificacion('');
                           setContrasena('');
                           setError('');
                         }}

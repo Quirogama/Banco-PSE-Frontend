@@ -25,8 +25,8 @@ export const pagoService = {
   /**
    * Iniciar sesión y obtener JWT
    */
-  async login({ email, contrasena }: { email: string, contrasena: string }) {
-    const response = await api.post('/auth/login', { email, contrasena });
+  async login({ tipoDocumento, identificacion, contrasena }: { tipoDocumento: string, identificacion: string, contrasena: string }) {
+    const response = await api.post('/auth/login', { tipoDocumento, identificacion, contrasena });
     return response.data;
   },
 };
